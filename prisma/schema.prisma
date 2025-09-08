@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  phone           String
+  fullName        String
+  birthDate       DateTime
+  kycStatus       KycStatus @default(PENDING)
+  idPhotoUrl      String?
+  selfieWithIdUrl String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  wallet          Wallet?
+  reputation      Reputation?
+}
+
+model Wallet {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  coins       Int      @default(100)
+  bonusCoins  Int      @default(0)
+  totalWon    Int      @default(0)
+  totalLost   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Reputation {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  reliability  Int      @default(100)
+  fairPlay     Int      @default(100)
+  punctuality  Int      @default(100)
+  totalBets    Int      @default(0)
+  disputesWon  Int      @default(0)
+  disputesLost Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
