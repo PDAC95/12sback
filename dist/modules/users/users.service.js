@@ -18,19 +18,22 @@ let UsersService = class UsersService {
         this.prisma = prisma;
     }
     async create(createUserDto) {
-        return this.prisma.user.create({
-            data: {
-                ...createUserDto,
-                birthDate: new Date(createUserDto.birthDate),
-                wallet: {
-                    create: {
-                        coins: 100,
-                    },
-                },
-                reputation: {
-                    create: {},
+        const userData = {
+            ...createUserDto,
+            birthDate: new Date(createUserDto.birthDate),
+            emailVerified: createUserDto.emailVerified ?? false,
+            termsAcceptedAt: createUserDto.termsAcceptedAt ? new Date(createUserDto.termsAcceptedAt) : new Date(),
+            wallet: {
+                create: {
+                    coins: 100,
                 },
             },
+            reputation: {
+                create: {},
+            },
+        };
+        return this.prisma.user.create({
+            data: userData,
             include: {
                 wallet: true,
                 reputation: true,

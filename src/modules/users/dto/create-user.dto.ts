@@ -1,23 +1,23 @@
-import { IsEmail, IsString, IsDateString, IsOptional } from 'class-validator';
+import { IsEmail, IsString, IsDateString, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail()
   email: string;
 
   @IsString()
-  phone: string;
+  username: string;
 
   @IsString()
-  fullName: string;
+  auth0Id: string;
 
   @IsDateString()
   birthDate: string;
 
-  @IsString()
+  @IsBoolean()
   @IsOptional()
-  idPhotoUrl?: string;
+  emailVerified?: boolean;
 
-  @IsString()
+  @IsDateString()
   @IsOptional()
-  selfieWithIdUrl?: string;
+  termsAcceptedAt?: string;
 }

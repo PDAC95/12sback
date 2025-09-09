@@ -9,41 +9,33 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateUserDto = void 0;
+exports.RegisterDto = void 0;
 const class_validator_1 = require("class-validator");
-class CreateUserDto {
+class RegisterDto {
     email;
     username;
-    auth0Id;
+    password;
     birthDate;
-    emailVerified;
-    termsAcceptedAt;
 }
-exports.CreateUserDto = CreateUserDto;
+exports.RegisterDto = RegisterDto;
 __decorate([
     (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
-], CreateUserDto.prototype, "email", void 0);
+], RegisterDto.prototype, "email", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^[a-zA-Z0-9_]+$/, {
+        message: 'Username can only contain letters, numbers and underscores'
+    }),
     __metadata("design:type", String)
-], CreateUserDto.prototype, "username", void 0);
+], RegisterDto.prototype, "username", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(8),
     __metadata("design:type", String)
-], CreateUserDto.prototype, "auth0Id", void 0);
+], RegisterDto.prototype, "password", void 0);
 __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
-], CreateUserDto.prototype, "birthDate", void 0);
-__decorate([
-    (0, class_validator_1.IsBoolean)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Boolean)
-], CreateUserDto.prototype, "emailVerified", void 0);
-__decorate([
-    (0, class_validator_1.IsDateString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateUserDto.prototype, "termsAcceptedAt", void 0);
-//# sourceMappingURL=create-user.dto.js.map
+], RegisterDto.prototype, "birthDate", void 0);
+//# sourceMappingURL=register.dto.js.map

@@ -15,19 +15,30 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  phone           String
-  fullName        String
-  birthDate       DateTime
-  kycStatus       KycStatus @default(PENDING)
-  idPhotoUrl      String?
-  selfieWithIdUrl String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  email             String    @unique
+  username          String    @unique
+  auth0Id           String    @unique @map("auth0_id")
+  birthDate         DateTime  @map("birth_date")
   
+  // Verification
+  emailVerified     Boolean   @default(false) @map("email_verified")
+  
+  // Legal
+  termsAcceptedAt   DateTime  @map("terms_accepted_at")
+  
+  // Timestamps
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
   wallet          Wallet?
   reputation      Reputation?
+  
+  @@map("users")
+  @@index([email])
+  @@index([username])
+  @@index([auth0Id])
 }
 
 model Wallet {
@@ -58,8 +69,3 @@ model Reputation {
   user         User     @relation(fields: [userId], references: [id])
 }
 
-enum KycStatus {
-  PENDING
-  VERIFIED
-  REJECTED
-}

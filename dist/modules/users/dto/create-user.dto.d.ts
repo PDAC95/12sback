@@ -1,8 +1,8 @@
 export declare class CreateUserDto {
     email: string;
-    phone: string;
-    fullName: string;
+    username: string;
+    auth0Id: string;
     birthDate: string;
-    idPhotoUrl?: string;
-    selfieWithIdUrl?: string;
+    emailVerified?: boolean;
+    termsAcceptedAt?: string;
 }

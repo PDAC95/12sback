@@ -19,8 +19,8 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  await app.listen(3002);
-  console.log('NestJS API is running on: http://localhost:3002');
-  console.log('Swagger documentation available at: http://localhost:3002/api');
+  await app.listen(3001);
+  console.log('NestJS API is running on: http://localhost:3001');
+  console.log('Swagger documentation available at: http://localhost:3001/api');
 }
 bootstrap();
