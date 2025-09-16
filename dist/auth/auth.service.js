@@ -44,12 +44,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../database/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
     prisma;
-    constructor(prisma) {
+    jwtService;
+    constructor(prisma, jwtService) {
         this.prisma = prisma;
+        this.jwtService = jwtService;
     }
     async register(registerDto) {
         const { email, username, password, birthDate } = registerDto;
@@ -76,35 +79,116 @@ let AuthService = class AuthService {
             throw new common_1.ConflictException('Email already registered');
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await this.prisma.user.create({
-            data: {
-                email,
-                username,
-                birthDate: birth,
-                auth0Id: `temp_${Date.now()}`,
-                emailVerified: false,
-                termsAcceptedAt: new Date()
+        const result = await this.prisma.$transaction(async (prisma) => {
+            const user = await prisma.user.create({
+                data: {
+                    email,
+                    username,
+                    birthDate: birth,
+                    auth0Id: `temp_${Date.now()}`,
+                    emailVerified: false,
+                    termsAcceptedAt: new Date(),
+                },
+            });
+            await prisma.userPassword.create({
+                data: {
+                    userId: user.id,
+                    passwordHash: hashedPassword,
+                },
+            });
+            await prisma.wallet.create({
+                data: {
+                    userId: user.id,
+                    coins: 100,
+                },
+            });
+            await prisma.reputation.create({
+                data: {
+                    userId: user.id,
+                },
+            });
+            return user;
+        });
+        return {
+            message: 'Registration successful',
+            user: {
+                id: result.id,
+                email: result.email,
+                username: result.username,
+                emailVerified: result.emailVerified,
+                createdAt: result.createdAt,
             },
+        };
+    }
+    async login(loginDto) {
+        const { email, password } = loginDto;
+        const user = await this.prisma.user.findUnique({
+            where: { email },
+            include: {
+                password: true,
+                wallet: true,
+                reputation: true,
+            },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('Invalid email or password');
+        }
+        if (!user.password) {
+            throw new common_1.UnauthorizedException('Please register first');
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password.passwordHash);
+        if (!isPasswordValid) {
+            throw new common_1.UnauthorizedException('Invalid email or password');
+        }
+        const payload = {
+            sub: user.id,
+            email: user.email,
+            username: user.username,
+            emailVerified: user.emailVerified,
+        };
+        const token = this.jwtService.sign(payload);
+        return {
+            success: true,
+            data: {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    emailVerified: user.emailVerified,
+                    coins: user.wallet?.coins || 0,
+                    reputation: user.reputation?.reliability || 100,
+                },
+                token,
+            },
+            message: 'Login successful',
+        };
+    }
+    async validateUser(userId) {
+        return await this.prisma.user.findUnique({
+            where: { id: userId },
             select: {
                 id: true,
                 email: true,
                 username: true,
                 emailVerified: true,
-                createdAt: true
-            }
+                wallet: {
+                    select: {
+                        coins: true,
+                    },
+                },
+                reputation: {
+                    select: {
+                        reliability: true,
+                    },
+                },
+            },
         });
-        return {
-            message: 'Registration successful',
-            user
-        };
-    }
-    async login(loginDto) {
-        return { message: 'Login endpoint ready' };
     }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        jwt_1.JwtService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map
